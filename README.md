@@ -1,3 +1,8 @@
+# PgBouncer Helm Chart
+I've tried more than a few charts, but none seemed to work for me. So I've created this one.
+
+This is a standalone PgBouncer chart extracted from the one embedded in [Airflow](https://github.com/apache/airflow) chart.
+
 ## Prerequisites
 
 - Kubernetes 1.12+

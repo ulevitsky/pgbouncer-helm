@@ -1,10 +1,9 @@
-{{/* vim: set filetype=mustache: */}}
 {{/*
-Expand the name of the chart.
+Define the pgbouncer.name template
 */}}
 {{- define "pgbouncer.name" -}}
-{{- default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" -}}
-{{- end -}}
+{{- default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" }}
+{{- end }}
 
 {{/*
 Create a default fully qualified app name.
@@ -12,85 +11,36 @@ We truncate at 63 chars because some Kubernetes name fields are limited to this 
 If release name contains chart name it will be used as a full name.
 */}}
 {{- define "pgbouncer.fullname" -}}
-{{- if .Values.fullnameOverride -}}
-{{- .Values.fullnameOverride | trunc 63 | trimSuffix "-" -}}
-{{- else -}}
-{{- $name := default .Chart.Name .Values.nameOverride -}}
-{{- if contains $name .Release.Name -}}
-{{- .Release.Name | trunc 63 | trimSuffix "-" -}}
-{{- else -}}
-{{- printf "%s-%s" .Release.Name $name | trunc 63 | trimSuffix "-" -}}
-{{- end -}}
-{{- end -}}
-{{- end -}}
+{{- if .Values.fullnameOverride }}
+{{- .Values.fullnameOverride | trunc 63 | trimSuffix "-" }}
+{{- else }}
+{{- $name := default .Chart.Name .Values.nameOverride }}
+{{- if contains $name .Release.Name }}
+{{- .Release.Name | trunc 63 | trimSuffix "-" }}
+{{- else }}
+{{- printf "%s-%s" .Release.Name $name | trunc 63 | trimSuffix "-" }}
+{{- end }}
+{{- end }}
+{{- end }}
 
 {{/*
 Create chart name and version as used by the chart label.
 */}}
 {{- define "pgbouncer.chart" -}}
-{{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" -}}
-{{- end -}}
-
-{{/*
-Create content for userlist.txt secret
-*/}}
-{{- define "pgbouncer.secret.userlist" }}
-{{- if not .Values.config.existingAdminSecret -}}
-"{{ .Values.config.adminUser }}" "{{ required "A valid .Values.config.adminPassword entry required!" .Values.config.adminPassword }}"
+{{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" }}
 {{- end }}
-{{- if .Values.config.authUser }}
-"{{ .Values.config.authUser }}" "{{ required "A valid .Values.config.authPassword entry required!" .Values.config.authPassword }}"
-{{- end }}
-{{- range $key, $val := .Values.config.userlist }}
-"{{ $key }}" "{{ $val }}"
-{{- end }}
-{{- end }}
-
-{{/*
-Create the name of the service account to use
-*/}}
-{{- define "pgbouncer.serviceAccountName" -}}
-{{- if not .Values.serviceAccount.name -}}
-{{ template "pgbouncer.fullname" . }}
-{{- else -}}
-{{- .Values.serviceAccount.name | trunc 63 | trimSuffix "-" -}}
-{{- end -}}
-{{- end -}}
-
-{{/*
-Contruct and return the image to use
-*/}}
-{{- define "pgbouncer.image" -}}
-{{- if not .Values.image.registry -}}
-{{ printf "%s:%s" .Values.image.repository .Values.image.tag }}
-{{- else -}}
-{{ printf "%s/%s:%s" .Values.image.registry .Values.image.repository .Values.image.tag }}
-{{- end -}}
-{{- end -}}
-
-{{/*
-Contruct and return the exporter image to use
-*/}}
-{{- define "pgbouncer.exporterImage" -}}
-{{- if not .Values.pgbouncerExporter.image.registry -}}
-{{ printf "%s:%s" .Values.pgbouncerExporter.image.repository .Values.pgbouncerExporter.image.tag }}
-{{- else -}}
-{{ printf "%s/%s:%s" .Values.pgbouncerExporter.image.registry .Values.pgbouncerExporter.image.repository .Values.pgbouncerExporter.image.tag }}
-{{- end -}}
-{{- end -}}
 
 {{/*
 Common labels
 */}}
 {{- define "pgbouncer.labels" -}}
 helm.sh/chart: {{ include "pgbouncer.chart" . }}
+{{ include "pgbouncer.selectorLabels" . }}
 {{- if .Chart.AppVersion }}
 app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
 {{- end }}
-app.kubernetes.io/name: {{ include "pgbouncer.name" . }}
-app.kubernetes.io/instance: {{ .Release.Name }}
 app.kubernetes.io/managed-by: {{ .Release.Service }}
-{{- end -}}
+{{- end }}
 
 {{/*
 Selector labels
@@ -98,60 +48,122 @@ Selector labels
 {{- define "pgbouncer.selectorLabels" -}}
 app.kubernetes.io/name: {{ include "pgbouncer.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
-{{- end -}}
+{{- end }}
 
 {{/*
-Return the appropriate apiVersion for deployment.
+Create the name of the service account to use
 */}}
-{{- define "deployment.apiVersion" -}}
-{{- if .Capabilities.APIVersions.Has "apps/v1/Deployment" -}}
-{{- print "apps/v1" -}}
-{{- else -}}
-{{- print "extensions/v1beta1" -}}
-{{- end -}}
-{{- end -}}
+{{- define "pgbouncer.serviceAccountName" -}}
+{{- if .Values.serviceAccount.create }}
+{{- default (include "pgbouncer.fullname" .) .Values.serviceAccount.name }}
+{{- else }}
+{{- default "default" .Values.serviceAccount.name }}
+{{- end }}
+{{- end }}
 
 {{/*
-Return the appropriate apiVersion for PodDisruptionBudget kind of objects.
+Create the name of the config secret to use
 */}}
-{{- define "podDisruptionBudget.apiVersion" -}}
-{{- if .Capabilities.APIVersions.Has "policy/v1/PodDisruptionBudget" -}}
-{{- print "policy/v1" -}}
-{{- else -}}
-{{- if .Capabilities.APIVersions.Has "policy/v1beta1/PodDisruptionBudget" -}}
-{{- print "policy/v1beta1" -}}
-{{- else -}}
-{{- print "extensions/v1beta1" -}}
-{{- end -}}
-{{- end -}}
-{{- end -}}
+{{- define "pgbouncer.configSecret" -}}
+{{- if .Values.configSecretName }}
+{{- .Values.configSecretName }}
+{{- else }}
+{{- include "pgbouncer.fullname" . }}-config
+{{- end }}
+{{- end }}
 
 {{/*
-Return the appropriate apiVersion for Role kind of objects.
+Create the name of the stats secret to use
 */}}
-{{- define "role.apiVersion" -}}
-{{- if .Capabilities.APIVersions.Has "rbac.authorization.k8s.io/v1/Role" -}}
-{{- print "rbac.authorization.k8s.io/v1" -}}
-{{- else -}}
-{{- if .Capabilities.APIVersions.Has "rbac.authorization.k8s.io/v1beta1/Role" -}}
-{{- print "rbac.authorization.k8s.io/v1beta1" -}}
-{{- else -}}
-{{- print "rbac.authorization.k8s.io/v1alpha1" -}}
-{{- end -}}
-{{- end -}}
-{{- end -}}
+{{- define "pgbouncer.statsSecret" -}}
+{{- if .Values.metricsExporter.statsSecretName }}
+{{- .Values.metricsExporter.statsSecretName }}
+{{- else }}
+{{- include "pgbouncer.fullname" . }}-stats
+{{- end }}
+{{- end }}
 
 {{/*
-Return the appropriate apiVersion for RoleBinding kind of objects.
+Create the name of the certificates secret to use
 */}}
-{{- define "roleBinding.apiVersion" -}}
-{{- if .Capabilities.APIVersions.Has "rbac.authorization.k8s.io/v1/RoleBinding" -}}
-{{- print "rbac.authorization.k8s.io/v1" -}}
-{{- else -}}
-{{- if .Capabilities.APIVersions.Has "rbac.authorization.k8s.io/v1beta1/RoleBinding" -}}
-{{- print "rbac.authorization.k8s.io/v1beta1" -}}
-{{- else -}}
-{{- print "rbac.authorization.k8s.io/v1alpha1" -}}
-{{- end -}}
-{{- end -}}
-{{- end -}}
+{{- define "pgbouncer.certificatesSecret" -}}
+{{- include "pgbouncer.fullname" . }}-certificates
+{{- end }}
+
+{{/*
+Create the name of the registry secret to use
+*/}}
+{{- define "pgbouncer.registrySecret" -}}
+{{- if .Values.registry.secretName }}
+{{- .Values.registry.secretName }}
+{{- else }}
+{{- include "pgbouncer.fullname" . }}-registry
+{{- end }}
+{{- end }}
+
+{{/*
+PgBouncer ini configuration
+*/}}
+{{- define "pgbouncer.ini" -}}
+[databases]
+{{ .Values.databases }}
+
+{{- if .Values.extraIniMetadata }}
+{{ .Values.extraIniMetadata }}
+{{- end }}
+
+{{- if .Values.extraIniResultBackend }}
+{{ .Values.extraIniResultBackend }}
+{{- end }}
+
+[pgbouncer]
+listen_addr = 0.0.0.0
+listen_port = {{ .Values.ports.pgbouncer }}
+auth_file = /etc/pgbouncer/users.txt
+auth_type = md5
+pool_mode = session
+max_client_conn = 100
+default_pool_size = 20
+ignore_startup_parameters = extra_float_digits
+server_reset_query = DISCARD ALL
+server_check_query = select 1
+server_check_delay = 10
+max_prepared_statements = 0
+application_name_add_host = 1
+
+# Log settings
+admin_users = postgres
+stats_users = postgres
+verbose = {{ .Values.verbose }}
+log_disconnections = {{ .Values.logDisconnections }}
+log_connections = {{ .Values.logConnections }}
+
+# Connection sanity checks, timeouts
+server_idle_timeout = 60
+server_lifetime = 1200
+server_connect_timeout = 15
+query_timeout = 120
+client_idle_timeout = 60
+
+# TLS settings
+{{- if or .Values.ssl.ca .Values.ssl.cert .Values.ssl.key }}
+client_tls_sslmode = {{ .Values.sslmode }}
+client_tls_ca_file = /etc/pgbouncer/ca.crt
+client_tls_key_file = /etc/pgbouncer/server.key
+client_tls_cert_file = /etc/pgbouncer/server.crt
+client_tls_ciphers = {{ .Values.ciphers }}
+{{- end }}
+
+{{- if .Values.extraIni }}
+{{ .Values.extraIni }}
+{{- end }}
+{{- end }}
+
+{{/*
+PgBouncer users configuration
+*/}}
+{{- define "pgbouncer.users" -}}
+{{- range $username, $password := .Values.users }}
+"{{ $username }}" "{{ $password }}"
+{{- end }}
+{{- end }}
