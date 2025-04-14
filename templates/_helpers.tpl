@@ -128,7 +128,7 @@ ignore_startup_parameters = extra_float_digits
 server_reset_query = DISCARD ALL
 server_check_query = select 1
 server_check_delay = 10
-max_prepared_statements = 0
+max_prepared_statements = {{ .Values.maxPreparedStatements }}
 application_name_add_host = 1
 
 # Log settings
