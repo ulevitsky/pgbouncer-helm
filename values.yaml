@@ -202,6 +202,8 @@ sslmode: "prefer"
 ciphers: "normal"
 # Maximum number of prepared statements per connection
 maxPreparedStatements: 200
+# Startup parameters to ignore
+ignoreStartupParameters: "extra_float_digits"
 
 # PgBouncer databases configuration
 # This is the raw content that will go into the [databases] section of pgbouncer.ini
