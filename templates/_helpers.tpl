@@ -121,7 +121,7 @@ listen_addr = 0.0.0.0
 listen_port = {{ .Values.ports.pgbouncer }}
 auth_file = /etc/pgbouncer/users.txt
 auth_type = md5
-pool_mode = session
+pool_mode = {{ .Values.poolMode }}
 max_client_conn = 100
 default_pool_size = 20
 ignore_startup_parameters = {{ .Values.ignoreStartupParameters }}
@@ -132,8 +132,8 @@ max_prepared_statements = {{ .Values.maxPreparedStatements }}
 application_name_add_host = 1
 
 # Log settings
-admin_users = postgres
-stats_users = postgres
+admin_users = {{ .Values.adminUsers }}
+stats_users = {{ .Values.statsUsers }}
 verbose = {{ .Values.verbose }}
 log_disconnections = {{ .Values.logDisconnections }}
 log_connections = {{ .Values.logConnections }}
