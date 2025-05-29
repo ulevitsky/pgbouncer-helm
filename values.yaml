@@ -200,6 +200,14 @@ logDisconnections: 0
 logConnections: 0
 sslmode: "prefer"
 ciphers: "normal"
+# Listen address
+listenAddr: "0.0.0.0"
+# Auth type
+authType: "md5"
+# Maximum number of client connections
+maxClientConn: 100
+# Default pool size
+defaultPoolSize: 20
 # Maximum number of prepared statements per connection
 maxPreparedStatements: 200
 # Startup parameters to ignore
@@ -210,6 +218,19 @@ adminUsers: "postgres"
 statsUsers: "postgres"
 # PgBouncer pool mode: session | transaction | statement
 poolMode: "session"
+
+# Server check delay
+serverCheckDelay: 10
+# Server idle timeout
+serverIdleTimeout: 60
+# Server lifetime
+serverLifetime: 1200
+# Server connect timeout
+serverConnectTimeout: 15
+# Query timeout
+queryTimeout: 120
+# Client idle timeout
+clientIdleTimeout: 60
 
 # PgBouncer databases configuration
 # This is the raw content that will go into the [databases] section of pgbouncer.ini

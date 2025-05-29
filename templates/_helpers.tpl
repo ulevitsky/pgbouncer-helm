@@ -117,17 +117,17 @@ PgBouncer ini configuration
 {{- end }}
 
 [pgbouncer]
-listen_addr = 0.0.0.0
+listen_addr = {{ .Values.listenAddr }}
 listen_port = {{ .Values.ports.pgbouncer }}
 auth_file = /etc/pgbouncer/users.txt
-auth_type = md5
+auth_type = {{ .Values.authType }}
 pool_mode = {{ .Values.poolMode }}
-max_client_conn = 100
-default_pool_size = 20
+max_client_conn = {{ .Values.maxClientConn }}
+default_pool_size = {{ .Values.defaultPoolSize }}
 ignore_startup_parameters = {{ .Values.ignoreStartupParameters }}
 server_reset_query = DISCARD ALL
 server_check_query = select 1
-server_check_delay = 10
+server_check_delay = {{ .Values.serverCheckDelay }}
 max_prepared_statements = {{ .Values.maxPreparedStatements }}
 application_name_add_host = 1
 
@@ -139,11 +139,11 @@ log_disconnections = {{ .Values.logDisconnections }}
 log_connections = {{ .Values.logConnections }}
 
 # Connection sanity checks, timeouts
-server_idle_timeout = 60
-server_lifetime = 1200
-server_connect_timeout = 15
-query_timeout = 120
-client_idle_timeout = 60
+server_idle_timeout = {{ .Values.serverIdleTimeout }}
+server_lifetime = {{ .Values.serverLifetime }}
+server_connect_timeout = {{ .Values.serverConnectTimeout }}
+query_timeout = {{ .Values.queryTimeout }}
+client_idle_timeout = {{ .Values.clientIdleTimeout }}
 
 # TLS settings
 {{- if or .Values.ssl.ca .Values.ssl.cert .Values.ssl.key }}
